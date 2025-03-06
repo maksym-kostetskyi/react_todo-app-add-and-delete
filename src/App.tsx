@@ -27,14 +27,14 @@ export const App: React.FC = () => {
   const focusedTodoRef = useRef<HTMLInputElement>(null);
   const defaultInputRef = useRef<HTMLInputElement>(null);
 
-  function showError(errMessage: string) {
+  const showError = (errMessage: string) => {
     if (errMessage) {
       setErrorMessage(errMessage);
       setTimeout(() => {
         setErrorMessage('');
       }, 3000);
     }
-  }
+  };
 
   const getCompletedTodos = React.useCallback(() => {
     return currentTodos.filter(todo => todo.completed);
