@@ -12,7 +12,7 @@ import { FilterStatus } from './types/FilterStatus';
 import { TodoList } from './components/TodoList/TodoList';
 
 export const App: React.FC = () => {
-  const isFirstRender = useRef(true);
+  /* const isFirstRender = useRef(true); */
   const [todosFromServer, setTodosFromServer] = useState<Todo[]>([]);
   const [currentTodos, setCurrentTodos] = useState<Todo[]>(todosFromServer);
   const [shownTodos, setShownTodos] = useState<Todo[]>([]);
@@ -72,7 +72,7 @@ export const App: React.FC = () => {
           });
       }
     },
-    [currentTodos],
+    [currentTodos, showError],
   );
 
   const getAndShowTodos = React.useCallback(() => {
@@ -118,7 +118,7 @@ export const App: React.FC = () => {
           });
       }
     },
-    [currentTodos],
+    [currentTodos, showError],
   );
 
   const deleteCompletedTodos = React.useCallback(async () => {
@@ -165,10 +165,10 @@ export const App: React.FC = () => {
           });
       }
     },
-    [currentTodos],
+    [currentTodos, showError],
   );
 
-  const toggleTodoCompletedStatus = React.useCallback(() => {
+  /* const toggleTodoCompletedStatus = React.useCallback(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
@@ -202,9 +202,9 @@ export const App: React.FC = () => {
       .finally(() => {
         defaultInputRef.current?.focus();
       });
-  }, [shouldToggleAllCompleted]);
+  }, [shouldToggleAllCompleted, showError, currentTodos]); */
 
-  useEffect(() => {
+  /* useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
@@ -212,7 +212,7 @@ export const App: React.FC = () => {
     }
 
     toggleTodoCompletedStatus();
-  }, [shouldToggleAllCompleted, toggleTodoCompletedStatus]);
+  }, [shouldToggleAllCompleted, toggleTodoCompletedStatus]); */
 
   useEffect(() => {
     updateChosenTodo(todoToUpdate);
