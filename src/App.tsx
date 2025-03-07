@@ -62,9 +62,8 @@ export const App: React.FC = () => {
               ),
             ]);
           })
-          .catch(error => {
+          .catch(() => {
             showError('Unable to delete a todo');
-            throw error;
           })
           .finally(() => {
             setTodoToDelete(null);
@@ -81,9 +80,8 @@ export const App: React.FC = () => {
         setTodosFromServer(todos);
         setCurrentTodos(todos);
       })
-      .catch(error => {
+      .catch(() => {
         showError('Unable to load todos');
-        throw error;
       })
       .finally(() => defaultInputRef.current?.focus());
   }, [showError]);
@@ -107,9 +105,8 @@ export const App: React.FC = () => {
             setClearInput(true);
             setNewTodo(null);
           })
-          .catch(error => {
+          .catch(() => {
             showError('Unable to add a todo');
-            throw error;
           })
           .finally(() => {
             setTodoBeingAdded(false);
@@ -156,9 +153,8 @@ export const App: React.FC = () => {
 
             setTodoToUpdate(null);
           })
-          .catch(error => {
+          .catch(() => {
             showError('Unable to update a todo');
-            throw error;
           })
           .finally(() => {
             defaultInputRef.current?.focus();
@@ -195,9 +191,8 @@ export const App: React.FC = () => {
       .then(() => {
         setCurrentTodos(toggledTodos);
       })
-      .catch(error => {
+      .catch(() => {
         showError('Unable to update a todo');
-        throw error;
       })
       .finally(() => {
         defaultInputRef.current?.focus();
