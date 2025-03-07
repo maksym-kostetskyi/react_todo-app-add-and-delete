@@ -36,9 +36,7 @@ export const App: React.FC = () => {
       setErrorMessage(errMessage);
 
       setTimeout(() => {
-        setErrorMessage(prev => {
-          return prev === errMessage ? '' : prev;
-        });
+        setErrorMessage('');
       }, 3000);
     }
   }, []);
@@ -129,8 +127,8 @@ export const App: React.FC = () => {
       try {
         await deleteTodo(todo);
         setCurrentTodos(prevTodos => prevTodos.filter(t => t.id !== todo.id));
-      } catch (error) {
-        showError(`Unable to delete a todo`);
+      } catch {
+        showError('Unable to delete a todo');
       }
     }
 
