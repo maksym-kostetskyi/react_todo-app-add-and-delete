@@ -16,6 +16,8 @@ type Props = {
   shouldDeleteCompleted: boolean;
   todoToDelete: Todo | null;
   tempTodo: Todo | null;
+  todoToUpdate: Todo | null;
+  setTodoToUpdate: React.Dispatch<React.SetStateAction<Todo | null>>;
 };
 
 export const TodoList: React.FC<Props> = ({
@@ -27,6 +29,8 @@ export const TodoList: React.FC<Props> = ({
   shouldDeleteCompleted,
   todoToDelete,
   tempTodo,
+  todoToUpdate,
+  setTodoToUpdate,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -42,6 +46,8 @@ export const TodoList: React.FC<Props> = ({
               shouldDeleteCompleted={shouldDeleteCompleted}
               todoToDelete={todoToDelete}
               key={todo.id}
+              todoToUpdate={todoToUpdate}
+              setTodoToUpdate={setTodoToUpdate}
             />
           ))}
         </div>

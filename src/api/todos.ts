@@ -9,14 +9,18 @@ export const getTodos = () => {
 
 // Add more methods here
 export const postTodo = (todo: Todo) => {
-  return client.post<Todo>(`/todos`, {
-    id: todo.id,
-    title: todo.title,
-    userId: 2400,
-    completed: todo.completed,
-  });
+  return client.post<Todo>(`/todos`, todo);
 };
 
 export const deleteTodo = (todo: Todo) => {
   return client.delete(`/todos/${todo.id}`);
+};
+
+export const updateTodo = (todo: Todo) => {
+  return client.patch<Todo>(`/todos/${todo.id}`, {
+    id: todo.id,
+    userId: 2400,
+    title: todo.title,
+    completed: todo.completed,
+  });
 };

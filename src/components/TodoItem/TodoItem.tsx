@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
-import React from 'react';
+import React, { useState } from 'react';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
 
@@ -14,6 +14,8 @@ type Props = {
   focusedTodoRef: React.RefObject<HTMLInputElement>;
   shouldDeleteCompleted: boolean;
   todoToDelete: Todo | null;
+  todoToUpdate: Todo | null;
+  setTodoToUpdate: React.Dispatch<React.SetStateAction<Todo | null>>;
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -24,7 +26,25 @@ export const TodoItem: React.FC<Props> = ({
   focusedTodoRef,
   shouldDeleteCompleted,
   todoToDelete,
+  todoToUpdate,
+  setTodoToUpdate,
 }) => {
+  const [inputValue, setInputValue] = useState(todo.title);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleBlurOrSubmit = () => {
+    setTodoToUpdate({
+      id: todo.id,
+      title: inputValue,
+      userId: 2400,
+      completed: todo.completed,
+    });
+    setSelectedTodo(undefined);
+  };
+
   return (
     <div
       data-cy="Todo"
@@ -38,7 +58,15 @@ export const TodoItem: React.FC<Props> = ({
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          defaultChecked={todo.completed && true}
+          checked={todo.completed}
+          onChange={() =>
+            setTodoToUpdate({
+              id: todo.id,
+              title: todo.title,
+              userId: 2400,
+              completed: !todo.completed,
+            })
+          }
         />
       </label>
 
@@ -63,14 +91,20 @@ export const TodoItem: React.FC<Props> = ({
           </button>
         </>
       ) : (
-        <form>
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            handleBlurOrSubmit();
+          }}
+        >
           <input
             data-cy="TodoTitleField"
             type="text"
             className="todo__title-field"
             placeholder="Empty todo will be deleted"
-            value="Todo is being edited now"
-            onBlur={() => setSelectedTodo(undefined)}
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={handleBlurOrSubmit}
             ref={focusedTodoRef}
           />
         </form>
@@ -82,7 +116,9 @@ export const TodoItem: React.FC<Props> = ({
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
           'is-active':
-            todo === todoToDelete || (shouldDeleteCompleted && todo.completed),
+            todo === todoToDelete ||
+            todo.id === todoToUpdate?.id ||
+            (shouldDeleteCompleted && todo.completed),
         })}
       >
         <div className={classNameLoader} />

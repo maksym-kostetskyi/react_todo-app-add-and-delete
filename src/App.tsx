@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useRef, useState } from 'react';
 import { UserWarning } from './UserWarning';
-import { deleteTodo, postTodo, USER_ID } from './api/todos';
+import { deleteTodo, postTodo, updateTodo, USER_ID } from './api/todos';
 import { Todo } from './types/Todo';
 import { getTodos } from './api/todos';
 import { Header } from './components/Header';
@@ -12,6 +12,7 @@ import { FilterStatus } from './types/FilterStatus';
 import { TodoList } from './components/TodoList/TodoList';
 
 export const App: React.FC = () => {
+  const isFirstRender = useRef(true);
   const [todosFromServer, setTodosFromServer] = useState<Todo[]>([]);
   const [currentTodos, setCurrentTodos] = useState<Todo[]>(todosFromServer);
   const [shownTodos, setShownTodos] = useState<Todo[]>([]);
@@ -26,15 +27,21 @@ export const App: React.FC = () => {
   const [clearInput, setClearInput] = useState(false);
   const focusedTodoRef = useRef<HTMLInputElement>(null);
   const defaultInputRef = useRef<HTMLInputElement>(null);
+  const [todoToUpdate, setTodoToUpdate] = useState<Todo | null>(null);
+  const [shouldToggleAllCompleted, setShouldToggleAllCompleted] =
+    useState(false);
 
-  const showError = (errMessage: string) => {
+  const showError = React.useCallback((errMessage: string) => {
     if (errMessage) {
       setErrorMessage(errMessage);
+
       setTimeout(() => {
-        setErrorMessage('');
+        setErrorMessage(prev => {
+          return prev === errMessage ? '' : prev;
+        });
       }, 3000);
     }
-  };
+  }, []);
 
   const getCompletedTodos = React.useCallback(() => {
     return currentTodos.filter(todo => todo.completed);
@@ -79,7 +86,7 @@ export const App: React.FC = () => {
         throw error;
       })
       .finally(() => defaultInputRef.current?.focus());
-  }, []);
+  }, [showError]);
 
   const postNewTodo = React.useCallback(
     (todoToPost: Todo | null) => {
@@ -95,8 +102,8 @@ export const App: React.FC = () => {
         setErrorMessage('');
 
         postTodo(todoToPost)
-          .then(() => {
-            setCurrentTodos([...currentTodos, todoToPost]);
+          .then(postedTodo => {
+            setCurrentTodos([...currentTodos, postedTodo]);
             setClearInput(true);
             setNewTodo(null);
           })
@@ -107,30 +114,109 @@ export const App: React.FC = () => {
           .finally(() => {
             setTodoBeingAdded(false);
             setTempTodo(null);
+            defaultInputRef.current?.focus();
           });
       }
     },
     [currentTodos],
   );
 
-  const deleteCompletedTodos = React.useCallback(() => {
-    if (shouldDeleteCompleted) {
-      const completedTodos = getCompletedTodos();
-
-      Promise.all(completedTodos.map(todo => deleteTodo(todo)))
-        .then(() => {
-          setCurrentTodos(currentTodos.filter(todo => !todo.completed));
-        })
-        .catch(error => {
-          showError('Unable to delete a todo');
-          throw error;
-        })
-        .finally(() => {
-          setShouldDeleteCompleted(false);
-          defaultInputRef.current?.focus();
-        });
+  const deleteCompletedTodos = React.useCallback(async () => {
+    if (!shouldDeleteCompleted) {
+      return;
     }
-  }, [currentTodos, getCompletedTodos, shouldDeleteCompleted]);
+
+    const completedTodos = getCompletedTodos();
+
+    for (const todo of completedTodos) {
+      try {
+        await deleteTodo(todo);
+        setCurrentTodos(prevTodos => prevTodos.filter(t => t.id !== todo.id));
+      } catch (error) {
+        showError(`Unable to delete a todo`);
+      }
+    }
+
+    setShouldDeleteCompleted(false);
+    defaultInputRef.current?.focus();
+  }, [shouldDeleteCompleted, getCompletedTodos, showError]);
+
+  const updateChosenTodo = React.useCallback(
+    (todoSetToUpdate: Todo | null) => {
+      setErrorMessage('');
+
+      if (todoSetToUpdate) {
+        updateTodo(todoSetToUpdate)
+          .then(() => {
+            setCurrentTodos(
+              currentTodos.map(todo =>
+                todo.id === todoSetToUpdate.id ? todoSetToUpdate : todo,
+              ),
+            );
+
+            setTodoToUpdate(null);
+          })
+          .catch(error => {
+            showError('Unable to update a todo');
+            throw error;
+          })
+          .finally(() => {
+            defaultInputRef.current?.focus();
+          });
+      }
+    },
+    [currentTodos],
+  );
+
+  const toggleTodoCompletedStatus = React.useCallback(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+
+      return;
+    }
+
+    const toggledTodos = currentTodos.map(todo => ({
+      id: todo.id,
+      title: todo.title,
+      userId: 2400,
+      completed: shouldToggleAllCompleted,
+    }));
+
+    Promise.allSettled(
+      currentTodos.map(todo =>
+        updateTodo({
+          id: todo.id,
+          title: todo.title,
+          userId: 2400,
+          completed: shouldToggleAllCompleted,
+        }),
+      ),
+    )
+      .then(() => {
+        setCurrentTodos(toggledTodos);
+      })
+      .catch(error => {
+        showError('Unable to update a todo');
+        throw error;
+      })
+      .finally(() => {
+        defaultInputRef.current?.focus();
+      });
+  }, [shouldToggleAllCompleted]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+
+      return;
+    }
+
+    toggleTodoCompletedStatus();
+  }, [shouldToggleAllCompleted, toggleTodoCompletedStatus]);
+
+  useEffect(() => {
+    updateChosenTodo(todoToUpdate);
+  }, [todoToUpdate, updateChosenTodo]);
 
   useEffect(() => {
     if (!todoBeingAdded) {
@@ -190,6 +276,8 @@ export const App: React.FC = () => {
           todoBeingAdded={todoBeingAdded}
           clearInput={clearInput}
           setClearInput={setClearInput}
+          shouldToggleAllCompleted={shouldToggleAllCompleted}
+          setShouldToggleAllCompleted={setShouldToggleAllCompleted}
         />
 
         <TodoList
@@ -201,6 +289,8 @@ export const App: React.FC = () => {
           shouldDeleteCompleted={shouldDeleteCompleted}
           todoToDelete={todoToDelete}
           tempTodo={tempTodo}
+          todoToUpdate={todoToUpdate}
+          setTodoToUpdate={setTodoToUpdate}
         />
 
         {/* Hide the footer if there are no todos */}

@@ -10,6 +10,8 @@ type Props = {
   todoBeingAdded: boolean;
   clearInput: boolean;
   setClearInput: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldToggleAllCompleted: boolean;
+  setShouldToggleAllCompleted: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const Header: React.FC<Props> = ({
@@ -20,6 +22,8 @@ export const Header: React.FC<Props> = ({
   todoBeingAdded,
   clearInput,
   setClearInput,
+  shouldToggleAllCompleted,
+  setShouldToggleAllCompleted,
 }) => {
   const [inputValue, setInputValue] = useState('');
 
@@ -29,7 +33,7 @@ export const Header: React.FC<Props> = ({
 
     if (trimmedValue) {
       setNewTodo({
-        id: Math.max(...currentTodos.map(todo => todo.id)) + 1,
+        id: Math.floor(1000000 + Math.random() * 9000000),
         userId: 2400,
         title: trimmedValue,
         completed: false,
@@ -52,9 +56,10 @@ export const Header: React.FC<Props> = ({
       <button
         type="button"
         className={classNames('todoapp__toggle-all', {
-          active: !currentTodos.some(todo => todo.completed),
+          active: !currentTodos.some(todo => !todo.completed),
         })}
         data-cy="ToggleAllButton"
+        onClick={() => setShouldToggleAllCompleted(!shouldToggleAllCompleted)}
       />
 
       {/* Add a todo on form submit */}
