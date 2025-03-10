@@ -122,15 +122,19 @@ export const App: React.FC = () => {
     }
 
     const completedTodos = getCompletedTodos();
+    const deletePromises = completedTodos.map(todo => deleteTodo(todo));
 
-    for (const todo of completedTodos) {
-      try {
-        await deleteTodo(todo);
-        setCurrentTodos(prevTodos => prevTodos.filter(t => t.id !== todo.id));
-      } catch {
+    const results = await Promise.allSettled(deletePromises);
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        setCurrentTodos(prevTodos =>
+          prevTodos.filter(t => t.id !== completedTodos[index].id),
+        );
+      } else {
         showError('Unable to delete a todo');
       }
-    }
+    });
 
     setShouldDeleteCompleted(false);
     defaultInputRef.current?.focus();
