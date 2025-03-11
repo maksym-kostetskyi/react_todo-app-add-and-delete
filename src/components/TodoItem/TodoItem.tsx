@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
 
@@ -16,6 +16,8 @@ type Props = {
   todoToDelete: Todo | null;
   todoToUpdate: Todo | null;
   setTodoToUpdate: React.Dispatch<React.SetStateAction<Todo | null>>;
+  shouldToggleAllCompleted: boolean;
+  currentTodos: Todo[];
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -28,8 +30,13 @@ export const TodoItem: React.FC<Props> = ({
   todoToDelete,
   todoToUpdate,
   setTodoToUpdate,
+  shouldToggleAllCompleted,
+  currentTodos,
 }) => {
   const [inputValue, setInputValue] = useState(todo.title);
+  const [currentToogle, setCurrentToggle] = useState(
+    currentTodos.some(toDo => !toDo.completed),
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -44,6 +51,10 @@ export const TodoItem: React.FC<Props> = ({
     });
     setSelectedTodo(undefined);
   };
+
+  useEffect(() => {
+    setCurrentToggle(currentTodos.some(toDo => !toDo.completed));
+  }, [currentTodos]);
 
   return (
     <div
@@ -118,7 +129,8 @@ export const TodoItem: React.FC<Props> = ({
           'is-active':
             todo === todoToDelete ||
             todo.id === todoToUpdate?.id ||
-            (shouldDeleteCompleted && todo.completed),
+            (shouldDeleteCompleted && todo.completed) ||
+            (shouldToggleAllCompleted && todo.completed !== currentToogle),
         })}
       >
         <div className={classNameLoader} />

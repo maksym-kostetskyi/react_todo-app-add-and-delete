@@ -18,6 +18,8 @@ type Props = {
   tempTodo: Todo | null;
   todoToUpdate: Todo | null;
   setTodoToUpdate: React.Dispatch<React.SetStateAction<Todo | null>>;
+  shouldToggleAllCompleted: boolean;
+  currentTodos: Todo[];
 };
 
 export const TodoList: React.FC<Props> = ({
@@ -31,6 +33,8 @@ export const TodoList: React.FC<Props> = ({
   tempTodo,
   todoToUpdate,
   setTodoToUpdate,
+  shouldToggleAllCompleted,
+  currentTodos,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -48,6 +52,8 @@ export const TodoList: React.FC<Props> = ({
               key={todo.id}
               todoToUpdate={todoToUpdate}
               setTodoToUpdate={setTodoToUpdate}
+              shouldToggleAllCompleted={shouldToggleAllCompleted}
+              currentTodos={currentTodos}
             />
           ))}
         </div>

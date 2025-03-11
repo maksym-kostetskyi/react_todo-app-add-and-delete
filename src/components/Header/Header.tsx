@@ -59,7 +59,7 @@ export const Header: React.FC<Props> = ({
           active: !currentTodos.some(todo => !todo.completed),
         })}
         data-cy="ToggleAllButton"
-        onClick={() => setShouldToggleAllCompleted(!shouldToggleAllCompleted)}
+        onClick={() => setShouldToggleAllCompleted(true)}
       />
 
       {/* Add a todo on form submit */}

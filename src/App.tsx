@@ -12,7 +12,7 @@ import { FilterStatus } from './types/FilterStatus';
 import { TodoList } from './components/TodoList/TodoList';
 
 export const App: React.FC = () => {
-  /* const isFirstRender = useRef(true); */
+  const isFirstRender = useRef(true);
   const [todosFromServer, setTodosFromServer] = useState<Todo[]>([]);
   const [currentTodos, setCurrentTodos] = useState<Todo[]>(todosFromServer);
   const [shownTodos, setShownTodos] = useState<Todo[]>([]);
@@ -95,8 +95,6 @@ export const App: React.FC = () => {
           completed: todoToPost.completed,
         });
 
-        setErrorMessage('');
-
         postTodo(todoToPost)
           .then(postedTodo => {
             setCurrentTodos([...currentTodos, postedTodo]);
@@ -142,8 +140,6 @@ export const App: React.FC = () => {
 
   const updateChosenTodo = React.useCallback(
     (todoSetToUpdate: Todo | null) => {
-      setErrorMessage('');
-
       if (todoSetToUpdate) {
         updateTodo(todoSetToUpdate)
           .then(() => {
@@ -152,13 +148,12 @@ export const App: React.FC = () => {
                 todo.id === todoSetToUpdate.id ? todoSetToUpdate : todo,
               ),
             );
-
-            setTodoToUpdate(null);
           })
           .catch(() => {
             showError('Unable to update a todo');
           })
           .finally(() => {
+            setTodoToUpdate(null);
             defaultInputRef.current?.focus();
           });
       }
@@ -166,42 +161,44 @@ export const App: React.FC = () => {
     [currentTodos, showError],
   );
 
-  /* const toggleTodoCompletedStatus = React.useCallback(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+  const toggleTodoCompletedStatus = React.useCallback(async () => {
+    if (shouldToggleAllCompleted) {
+      let completed = false;
 
-      return;
-    }
+      if (getCompletedTodos().length < currentTodos.length) {
+        completed = true;
+      }
 
-    const toggledTodos = currentTodos.map(todo => ({
-      id: todo.id,
-      title: todo.title,
-      userId: 2400,
-      completed: shouldToggleAllCompleted,
-    }));
+      const results = await Promise.allSettled(
+        currentTodos.map(todo =>
+          updateTodo({
+            id: todo.id,
+            title: todo.title,
+            userId: 2400,
+            completed: completed,
+          }),
+        ),
+      );
 
-    Promise.allSettled(
-      currentTodos.map(todo =>
-        updateTodo({
-          id: todo.id,
-          title: todo.title,
-          userId: 2400,
-          completed: shouldToggleAllCompleted,
-        }),
-      ),
-    )
-      .then(() => {
-        setCurrentTodos(toggledTodos);
-      })
-      .catch(() => {
-        showError('Unable to update a todo');
-      })
-      .finally(() => {
-        defaultInputRef.current?.focus();
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          setCurrentTodos(prevTodos =>
+            prevTodos.map(t => ({
+              ...t,
+              completed: completed,
+            })),
+          );
+        } else {
+          showError('Unable to update a todo');
+        }
       });
-  }, [shouldToggleAllCompleted, showError, currentTodos]); */
 
-  /* useEffect(() => {
+      setShouldToggleAllCompleted(false);
+      defaultInputRef.current?.focus();
+    }
+  }, [shouldToggleAllCompleted, showError]);
+
+  useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
@@ -209,7 +206,7 @@ export const App: React.FC = () => {
     }
 
     toggleTodoCompletedStatus();
-  }, [shouldToggleAllCompleted, toggleTodoCompletedStatus]); */
+  }, [shouldToggleAllCompleted, toggleTodoCompletedStatus]);
 
   useEffect(() => {
     updateChosenTodo(todoToUpdate);
@@ -288,6 +285,8 @@ export const App: React.FC = () => {
           tempTodo={tempTodo}
           todoToUpdate={todoToUpdate}
           setTodoToUpdate={setTodoToUpdate}
+          shouldToggleAllCompleted={shouldToggleAllCompleted}
+          currentTodos={currentTodos}
         />
 
         {/* Hide the footer if there are no todos */}
