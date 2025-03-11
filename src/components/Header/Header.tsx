@@ -10,7 +10,6 @@ type Props = {
   todoBeingAdded: boolean;
   clearInput: boolean;
   setClearInput: React.Dispatch<React.SetStateAction<boolean>>;
-  shouldToggleAllCompleted: boolean;
   setShouldToggleAllCompleted: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -22,7 +21,6 @@ export const Header: React.FC<Props> = ({
   todoBeingAdded,
   clearInput,
   setClearInput,
-  shouldToggleAllCompleted,
   setShouldToggleAllCompleted,
 }) => {
   const [inputValue, setInputValue] = useState('');
@@ -53,14 +51,16 @@ export const Header: React.FC<Props> = ({
   return (
     <header className="todoapp__header">
       {/* this button should have `active` class only if all todos are completed */}
-      <button
-        type="button"
-        className={classNames('todoapp__toggle-all', {
-          active: !currentTodos.some(todo => !todo.completed),
-        })}
-        data-cy="ToggleAllButton"
-        onClick={() => setShouldToggleAllCompleted(true)}
-      />
+      {currentTodos.length > 0 && (
+        <button
+          type="button"
+          className={classNames('todoapp__toggle-all', {
+            active: !currentTodos.some(todo => !todo.completed),
+          })}
+          data-cy="ToggleAllButton"
+          onClick={() => setShouldToggleAllCompleted(true)}
+        />
+      )}
 
       {/* Add a todo on form submit */}
       <form onSubmit={event => handleSubmit(event)}>

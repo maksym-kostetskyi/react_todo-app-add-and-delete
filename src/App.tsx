@@ -65,11 +65,16 @@ export const App: React.FC = () => {
           })
           .finally(() => {
             setTodoToDelete(null);
+
+            if (todoToDelete === selectedTodo) {
+              setSelectedTodo(undefined);
+            }
+
             defaultInputRef.current?.focus();
           });
       }
     },
-    [currentTodos, showError],
+    [currentTodos, showError, selectedTodo, todoToDelete],
   );
 
   const getAndShowTodos = React.useCallback(() => {
@@ -154,11 +159,15 @@ export const App: React.FC = () => {
           })
           .finally(() => {
             setTodoToUpdate(null);
+            if (todoToUpdate === selectedTodo) {
+              setSelectedTodo(undefined);
+            }
+
             defaultInputRef.current?.focus();
           });
       }
     },
-    [currentTodos, showError],
+    [currentTodos, showError, selectedTodo, todoToUpdate],
   );
 
   const toggleTodoCompletedStatus = React.useCallback(async () => {
@@ -170,14 +179,16 @@ export const App: React.FC = () => {
       }
 
       const results = await Promise.allSettled(
-        currentTodos.map(todo =>
-          updateTodo({
-            id: todo.id,
-            title: todo.title,
-            userId: 2400,
-            completed: completed,
-          }),
-        ),
+        currentTodos.map(todo => {
+          if (todo.completed !== completed) {
+            updateTodo({
+              id: todo.id,
+              title: todo.title,
+              userId: 2400,
+              completed: completed,
+            });
+          }
+        }),
       );
 
       results.forEach(result => {
@@ -196,7 +207,7 @@ export const App: React.FC = () => {
       setShouldToggleAllCompleted(false);
       defaultInputRef.current?.focus();
     }
-  }, [shouldToggleAllCompleted, showError]);
+  }, [shouldToggleAllCompleted, showError, currentTodos, getCompletedTodos]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -270,7 +281,6 @@ export const App: React.FC = () => {
           todoBeingAdded={todoBeingAdded}
           clearInput={clearInput}
           setClearInput={setClearInput}
-          shouldToggleAllCompleted={shouldToggleAllCompleted}
           setShouldToggleAllCompleted={setShouldToggleAllCompleted}
         />
 

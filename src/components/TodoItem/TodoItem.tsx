@@ -34,7 +34,7 @@ export const TodoItem: React.FC<Props> = ({
   currentTodos,
 }) => {
   const [inputValue, setInputValue] = useState(todo.title);
-  const [currentToogle, setCurrentToggle] = useState(
+  const [currentToggle, setCurrentToggle] = useState(
     currentTodos.some(toDo => !toDo.completed),
   );
 
@@ -43,13 +43,29 @@ export const TodoItem: React.FC<Props> = ({
   };
 
   const handleBlurOrSubmit = () => {
-    setTodoToUpdate({
-      id: todo.id,
-      title: inputValue,
-      userId: 2400,
-      completed: todo.completed,
-    });
-    setSelectedTodo(undefined);
+    if (inputValue !== todo.title) {
+      if (inputValue === '') {
+        setTodoToDelete(todo);
+      } else {
+        setTodoToUpdate({
+          id: todo.id,
+          title: inputValue.trim(),
+          userId: 2400,
+          completed: todo.completed,
+        });
+      }
+    }
+
+    if (inputValue === todo.title) {
+      setSelectedTodo(undefined);
+    }
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setInputValue(todo.title);
+      setSelectedTodo(undefined);
+    }
   };
 
   useEffect(() => {
@@ -116,6 +132,7 @@ export const TodoItem: React.FC<Props> = ({
             value={inputValue}
             onChange={handleInputChange}
             onBlur={handleBlurOrSubmit}
+            onKeyUp={handleKeyUp}
             ref={focusedTodoRef}
           />
         </form>
@@ -130,7 +147,7 @@ export const TodoItem: React.FC<Props> = ({
             todo === todoToDelete ||
             todo.id === todoToUpdate?.id ||
             (shouldDeleteCompleted && todo.completed) ||
-            (shouldToggleAllCompleted && todo.completed !== currentToogle),
+            (shouldToggleAllCompleted && todo.completed !== currentToggle),
         })}
       >
         <div className={classNameLoader} />
