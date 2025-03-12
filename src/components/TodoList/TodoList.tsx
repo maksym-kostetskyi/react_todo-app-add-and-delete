@@ -8,50 +8,44 @@ import { TodoItem } from '../TodoItem';
 const classNameLoader = 'modal-background has-background-white-ter';
 
 type Props = {
-  shownTodos: Todo[];
+  filteredTodos: Todo[];
   selectedTodo?: Todo;
   setSelectedTodo: React.Dispatch<React.SetStateAction<Todo | undefined>>;
-  setTodoToDelete: React.Dispatch<React.SetStateAction<Todo | null>>;
+  deleteChosenTodo: (currentTodoToDelete: Todo | null) => void;
   focusedTodoRef: React.RefObject<HTMLInputElement>;
   shouldDeleteCompleted: boolean;
-  todoToDelete: Todo | null;
   tempTodo: Todo | null;
-  todoToUpdate: Todo | null;
-  setTodoToUpdate: React.Dispatch<React.SetStateAction<Todo | null>>;
+  updateChosenTodo: (todoSetToUpdate: Todo | null) => void;
   shouldToggleAllCompleted: boolean;
   currentTodos: Todo[];
 };
 
 export const TodoList: React.FC<Props> = ({
-  shownTodos,
+  filteredTodos,
   selectedTodo,
   setSelectedTodo,
-  setTodoToDelete,
+  deleteChosenTodo,
   focusedTodoRef,
   shouldDeleteCompleted,
-  todoToDelete,
   tempTodo,
-  todoToUpdate,
-  setTodoToUpdate,
+  updateChosenTodo,
   shouldToggleAllCompleted,
   currentTodos,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
-      {shownTodos.length !== 0 && (
+      {filteredTodos.length !== 0 && (
         <div>
-          {shownTodos.map(todo => (
+          {filteredTodos.map(todo => (
             <TodoItem
               todo={todo}
               selectedTodo={selectedTodo}
               setSelectedTodo={setSelectedTodo}
-              setTodoToDelete={setTodoToDelete}
+              deleteChosenTodo={deleteChosenTodo}
               focusedTodoRef={focusedTodoRef}
               shouldDeleteCompleted={shouldDeleteCompleted}
-              todoToDelete={todoToDelete}
               key={todo.id}
-              todoToUpdate={todoToUpdate}
-              setTodoToUpdate={setTodoToUpdate}
+              updateChosenTodo={updateChosenTodo}
               shouldToggleAllCompleted={shouldToggleAllCompleted}
               currentTodos={currentTodos}
             />

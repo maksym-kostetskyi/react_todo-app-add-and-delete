@@ -10,12 +10,10 @@ type Props = {
   todo: Todo;
   selectedTodo?: Todo;
   setSelectedTodo: React.Dispatch<React.SetStateAction<Todo | undefined>>;
-  setTodoToDelete: React.Dispatch<React.SetStateAction<Todo | null>>;
+  deleteChosenTodo: (currentTodoToDelete: Todo | null) => void;
   focusedTodoRef: React.RefObject<HTMLInputElement>;
   shouldDeleteCompleted: boolean;
-  todoToDelete: Todo | null;
-  todoToUpdate: Todo | null;
-  setTodoToUpdate: React.Dispatch<React.SetStateAction<Todo | null>>;
+  updateChosenTodo: (todoSetToUpdate: Todo | null) => void;
   shouldToggleAllCompleted: boolean;
   currentTodos: Todo[];
 };
@@ -24,19 +22,36 @@ export const TodoItem: React.FC<Props> = ({
   todo,
   selectedTodo,
   setSelectedTodo,
-  setTodoToDelete,
+  deleteChosenTodo,
   focusedTodoRef,
   shouldDeleteCompleted,
-  todoToDelete,
-  todoToUpdate,
-  setTodoToUpdate,
+  updateChosenTodo,
   shouldToggleAllCompleted,
   currentTodos,
 }) => {
   const [inputValue, setInputValue] = useState(todo.title);
-  const [currentToggle, setCurrentToggle] = useState(
-    currentTodos.some(toDo => !toDo.completed),
-  );
+  const [loader, setLoader] = useState(false);
+  const currentToggle = currentTodos.some(toDo => !toDo.completed);
+
+  const handleDelete = async (todoToDel: Todo) => {
+    setLoader(true);
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    await deleteChosenTodo(todoToDel);
+
+    setLoader(false);
+  };
+
+  const handleUpdate = async (todoToUp: Todo) => {
+    setLoader(true);
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    await updateChosenTodo(todoToUp);
+
+    setLoader(false);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -45,9 +60,9 @@ export const TodoItem: React.FC<Props> = ({
   const handleBlurOrSubmit = () => {
     if (inputValue !== todo.title) {
       if (inputValue === '') {
-        setTodoToDelete(todo);
+        handleDelete(todo);
       } else {
-        setTodoToUpdate({
+        handleUpdate({
           id: todo.id,
           title: inputValue.trim(),
           userId: 2400,
@@ -68,10 +83,6 @@ export const TodoItem: React.FC<Props> = ({
     }
   };
 
-  useEffect(() => {
-    setCurrentToggle(currentTodos.some(toDo => !toDo.completed));
-  }, [currentTodos]);
-
   return (
     <div
       data-cy="Todo"
@@ -87,9 +98,9 @@ export const TodoItem: React.FC<Props> = ({
           className="todo__status"
           checked={todo.completed}
           onChange={() =>
-            setTodoToUpdate({
+            handleUpdate({
               id: todo.id,
-              title: todo.title,
+              title: inputValue.trim(),
               userId: 2400,
               completed: !todo.completed,
             })
@@ -112,7 +123,7 @@ export const TodoItem: React.FC<Props> = ({
             type="button"
             className="todo__remove"
             data-cy="TodoDelete"
-            onClick={() => setTodoToDelete(todo)}
+            onClick={() => handleDelete(todo)}
           >
             ×
           </button>
@@ -144,8 +155,7 @@ export const TodoItem: React.FC<Props> = ({
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
           'is-active':
-            todo === todoToDelete ||
-            todo.id === todoToUpdate?.id ||
+            loader ||
             (shouldDeleteCompleted && todo.completed) ||
             (shouldToggleAllCompleted && todo.completed !== currentToggle),
         })}

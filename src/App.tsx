@@ -15,21 +15,30 @@ export const App: React.FC = () => {
   const isFirstRender = useRef(true);
   const [todosFromServer, setTodosFromServer] = useState<Todo[]>([]);
   const [currentTodos, setCurrentTodos] = useState<Todo[]>(todosFromServer);
-  const [shownTodos, setShownTodos] = useState<Todo[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [todosFilter, setTodosFilter] = useState(FilterStatus.All);
   const [selectedTodo, setSelectedTodo] = useState<Todo>();
-  const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
   const [shouldDeleteCompleted, setShouldDeleteCompleted] = useState(false);
-  const [newTodo, setNewTodo] = useState<Todo | null>(null);
   const [todoBeingAdded, setTodoBeingAdded] = useState(false);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [clearInput, setClearInput] = useState(false);
   const focusedTodoRef = useRef<HTMLInputElement>(null);
   const defaultInputRef = useRef<HTMLInputElement>(null);
-  const [todoToUpdate, setTodoToUpdate] = useState<Todo | null>(null);
   const [shouldToggleAllCompleted, setShouldToggleAllCompleted] =
     useState(false);
+
+  function filterTodos(filter: string) {
+    switch (filter) {
+      case FilterStatus.Active:
+        return currentTodos.filter(todo => !todo.completed);
+      case FilterStatus.Completed:
+        return currentTodos.filter(todo => todo.completed);
+      default:
+        return currentTodos;
+    }
+  }
+
+  const filteredTodos = filterTodos(todosFilter);
 
   const showError = React.useCallback((errMessage: string) => {
     if (errMessage) {
@@ -50,23 +59,17 @@ export const App: React.FC = () => {
       if (currentTodoToDelete) {
         deleteTodo(currentTodoToDelete)
           .then(() => {
-            setCurrentTodos([
-              ...currentTodos.slice(
-                0,
-                currentTodos.indexOf(currentTodoToDelete),
+            setCurrentTodos(
+              currentTodos.filter(
+                currTodo => currTodo.id !== currentTodoToDelete.id,
               ),
-              ...currentTodos.slice(
-                currentTodos.indexOf(currentTodoToDelete) + 1,
-              ),
-            ]);
+            );
           })
           .catch(() => {
             showError('Unable to delete a todo');
           })
           .finally(() => {
-            setTodoToDelete(null);
-
-            if (todoToDelete === selectedTodo) {
+            if (currentTodoToDelete === selectedTodo) {
               setSelectedTodo(undefined);
             }
 
@@ -74,7 +77,7 @@ export const App: React.FC = () => {
           });
       }
     },
-    [currentTodos, showError, selectedTodo, todoToDelete],
+    [currentTodos, showError, selectedTodo],
   );
 
   const getAndShowTodos = React.useCallback(() => {
@@ -104,7 +107,6 @@ export const App: React.FC = () => {
           .then(postedTodo => {
             setCurrentTodos([...currentTodos, postedTodo]);
             setClearInput(true);
-            setNewTodo(null);
           })
           .catch(() => {
             showError('Unable to add a todo');
@@ -158,8 +160,7 @@ export const App: React.FC = () => {
             showError('Unable to update a todo');
           })
           .finally(() => {
-            setTodoToUpdate(null);
-            if (todoToUpdate === selectedTodo) {
+            if (todoSetToUpdate === selectedTodo) {
               setSelectedTodo(undefined);
             }
 
@@ -167,7 +168,7 @@ export const App: React.FC = () => {
           });
       }
     },
-    [currentTodos, showError, selectedTodo, todoToUpdate],
+    [currentTodos, showError, selectedTodo],
   );
 
   const toggleTodoCompletedStatus = React.useCallback(async () => {
@@ -220,10 +221,6 @@ export const App: React.FC = () => {
   }, [shouldToggleAllCompleted, toggleTodoCompletedStatus]);
 
   useEffect(() => {
-    updateChosenTodo(todoToUpdate);
-  }, [todoToUpdate, updateChosenTodo]);
-
-  useEffect(() => {
     if (!todoBeingAdded) {
       defaultInputRef.current?.focus();
     }
@@ -232,29 +229,6 @@ export const App: React.FC = () => {
   useEffect(() => {
     getAndShowTodos();
   }, [getAndShowTodos]);
-
-  useEffect(() => {
-    function filterTodos(filter: string) {
-      switch (filter) {
-        case FilterStatus.Active:
-          return currentTodos.filter(todo => !todo.completed);
-        case FilterStatus.Completed:
-          return currentTodos.filter(todo => todo.completed);
-        default:
-          return currentTodos;
-      }
-    }
-
-    setShownTodos(filterTodos(todosFilter));
-  }, [todosFilter, currentTodos]);
-
-  useEffect(() => {
-    postNewTodo(newTodo);
-  }, [newTodo, postNewTodo]);
-
-  useEffect(() => {
-    deleteChosenTodo(todoToDelete);
-  }, [deleteChosenTodo, todoToDelete]);
 
   useEffect(() => {
     deleteCompletedTodos();
@@ -276,7 +250,7 @@ export const App: React.FC = () => {
         <Header
           defaultInputRef={defaultInputRef}
           currentTodos={currentTodos}
-          setNewTodo={setNewTodo}
+          postNewTodo={postNewTodo}
           showError={showError}
           todoBeingAdded={todoBeingAdded}
           clearInput={clearInput}
@@ -285,16 +259,14 @@ export const App: React.FC = () => {
         />
 
         <TodoList
-          shownTodos={shownTodos}
+          filteredTodos={filteredTodos}
           selectedTodo={selectedTodo}
           setSelectedTodo={setSelectedTodo}
-          setTodoToDelete={setTodoToDelete}
+          deleteChosenTodo={deleteChosenTodo}
           focusedTodoRef={focusedTodoRef}
           shouldDeleteCompleted={shouldDeleteCompleted}
-          todoToDelete={todoToDelete}
           tempTodo={tempTodo}
-          todoToUpdate={todoToUpdate}
-          setTodoToUpdate={setTodoToUpdate}
+          updateChosenTodo={updateChosenTodo}
           shouldToggleAllCompleted={shouldToggleAllCompleted}
           currentTodos={currentTodos}
         />

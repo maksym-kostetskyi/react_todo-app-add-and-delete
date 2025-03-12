@@ -5,7 +5,7 @@ import { Todo } from '../../types/Todo';
 type Props = {
   defaultInputRef: React.RefObject<HTMLInputElement>;
   currentTodos: Todo[];
-  setNewTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
+  postNewTodo: (todoToPost: Todo | null) => void;
   showError(errMessage: string): void;
   todoBeingAdded: boolean;
   clearInput: boolean;
@@ -16,7 +16,7 @@ type Props = {
 export const Header: React.FC<Props> = ({
   defaultInputRef,
   currentTodos,
-  setNewTodo,
+  postNewTodo,
   showError,
   todoBeingAdded,
   clearInput,
@@ -30,7 +30,7 @@ export const Header: React.FC<Props> = ({
     const trimmedValue = inputValue.trim();
 
     if (trimmedValue) {
-      setNewTodo({
+      postNewTodo({
         id: Math.floor(1000000 + Math.random() * 9000000),
         userId: 2400,
         title: trimmedValue,
